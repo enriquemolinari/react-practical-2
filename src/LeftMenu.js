@@ -7,43 +7,50 @@ import Home from "@material-ui/icons/Home";
 import AddBox from "@material-ui/icons/AddBox";
 import List from "@material-ui/core/List";
 
-export default function LeftMenu(props) {
-  function handleListItemClick(item) {
-    props.handleMenu(item);
+export default class LeftMenu extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleListItemClick = this.handleListItemClick.bind(this);
   }
 
-  return (
-    <List>
-      <ListItem
-        selected={props.valueItem === props.items.WELCOME}
-        button
-        onClick={() => handleListItemClick(props.items.WELCOME)}
-      >
-        <ListItemIcon>
-          <Home />
-        </ListItemIcon>
-        <ListItemText primary="Welcome" />
-      </ListItem>
-      <ListItem
-        selected={props.valueItem === props.items.USERSLIST}
-        button
-        onClick={() => handleListItemClick(props.items.USERSLIST)}
-      >
-        <ListItemIcon>
-          <PeopleIcon />
-        </ListItemIcon>
-        <ListItemText primary="User Lists" />
-      </ListItem>
-      <ListItem
-        selected={props.valueItem === props.items.USERFORM}
-        button
-        onClick={() => handleListItemClick(props.items.USERFORM)}
-      >
-        <ListItemIcon>
-          <AddBox />
-        </ListItemIcon>
-        <ListItemText primary="Add User" />
-      </ListItem>
-    </List>
-  );
+  handleListItemClick(item) {
+    this.props.handleMenu(item);
+  }
+
+  render() {
+    return (
+      <List>
+        <ListItem
+          selected={this.props.valueItem === this.props.items.WELCOME}
+          button
+          onClick={() => this.handleListItemClick(this.props.items.WELCOME)}
+        >
+          <ListItemIcon>
+            <Home />
+          </ListItemIcon>
+          <ListItemText primary="Welcome" />
+        </ListItem>
+        <ListItem
+          selected={this.props.valueItem === this.props.items.USERSLIST}
+          button
+          onClick={() => this.handleListItemClick(this.props.items.USERSLIST)}
+        >
+          <ListItemIcon>
+            <PeopleIcon />
+          </ListItemIcon>
+          <ListItemText primary="User Lists" />
+        </ListItem>
+        <ListItem
+          selected={this.props.valueItem === this.props.items.USERFORM}
+          button
+          onClick={() => this.handleListItemClick(this.props.items.USERFORM)}
+        >
+          <ListItemIcon>
+            <AddBox />
+          </ListItemIcon>
+          <ListItemText primary="Add User" />
+        </ListItem>
+      </List>
+    );
+  }
 }
