@@ -1,47 +1,44 @@
-import { useEffect, useState } from "react";
+import React, { Component } from "react";
 import { DataGrid } from "@material-ui/data-grid";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
-import { makeStyles } from "@material-ui/core/styles";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
 import UserDetails from "./UserDetails";
+import { styled } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme) => ({
-  box: {
-    height: 50,
-    display: "flex",
-  },
-  bottomRightBox: {
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-  },
-  spreadBox: {
-    justifyContent: "space-between",
-    alignItems: "right",
-  },
-}));
+const StyledBox = styled(Box)({
+  height: 40,
+  display: "flex",
+  justifyContent: "flex-end",
+  marginTop: 10,
+});
 
-export default function UsersList(props) {
-  const [state, setPass] = useState({ result: { data: [] } });
-  const [page, setPage] = useState(0);
-  const [showDetail, setShowDetail] = useState(false);
-  const [userId, setUserId] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
-  const [loading, setLoading] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMsg, setAlertMsg] = useState("");
+export default class UsersList extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      state: { result: { data: [] } },
+      page: 0,
+      pageSize: 5,
+      userId: 0,
+      showDetail: false,
+      loading: false,
+      showAlert: false,
+      alertMsg: "",
+    };
+  }
 
-  useEffect(() => {
+  fetchUserList() {
     fetch(
-      props.apiUrl +
+      this.props.apiUrl +
         "?_page=" +
         //first page is 1 for the json server API
         //Material DataGrid first page is 0
-        (page + 1) +
+        (this.state.page + 1) +
         "&_limit=" +
-        pageSize
+        this.state.pageSize
     )
       .then((response) =>
         response.json().then((json) => ({
@@ -50,14 +47,26 @@ export default function UsersList(props) {
         }))
       )
       .then((response) => {
-        setPass({ result: { total: response.total, data: response.data } });
+        this.setState({
+          state: { result: { total: response.total, data: response.data } },
+        });
       });
-  }, [page, pageSize]);
+  }
 
-  let userIdSelected = 0;
-  const classes = useStyles();
+  componentDidMount() {
+    this.fetchUserList();
+  }
 
-  const columns = [
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.page === this.state.page) {
+      return;
+    }
+    this.fetchUserList();
+  }
+
+  userIdSelected = 0;
+
+  columns = [
     { field: "id", headerName: "ID", width: 60 },
     { field: "name", headerName: "Name", width: 180, editable: true },
     { field: "username", headerName: "UserName", width: 200, editable: true },
@@ -72,7 +81,7 @@ export default function UsersList(props) {
           color="primary"
           size="small"
           style={{ marginLeft: 16 }}
-          onClick={() => openDetails(params.row)}
+          onClick={() => this.openDetails(params.row)}
         >
           More...
         </Button>
@@ -80,33 +89,33 @@ export default function UsersList(props) {
     },
   ];
 
-  function openDetails(params) {
-    setUserId(params.id);
-    setShowDetail(true);
-  }
+  openDetails = (params) => {
+    this.setState({ userId: params.id });
+    this.setState({ showDetail: true });
+  };
 
-  function closeDetails() {
-    setShowDetail(false);
-  }
+  closeDetails = () => {
+    this.setState({ showDetail: false });
+  };
 
-  function handleDelete() {
-    setLoading(true);
+  handleDelete = () => {
+    this.setState({ loading: true });
 
-    fetch(props.apiUrl + "/" + userIdSelected, {
+    fetch(this.props.apiUrl + "/" + this.userIdSelected, {
       method: "DELETE",
     }).then((response) => {
-      setLoading(false);
-      setAlertMsg("User Deleted Successfully");
-      setShowAlert(true);
+      this.setState({ loading: false });
+      this.setState({ showAlert: true });
+      this.setState({ alertMsg: "User Deleted Successfully" });
     });
-  }
+  };
 
-  function handleCloseAlert() {
-    setShowAlert(false);
-  }
+  handleCloseAlert = () => {
+    this.setState({ showAlert: false });
+  };
 
-  function handleEditing(params) {
-    fetch(props.apiUrl + "/" + params.id, {
+  handleEditing = (params) => {
+    fetch(this.props.apiUrl + "/" + params.id, {
       method: "PUT",
       body: JSON.stringify({
         id: params.id,
@@ -118,70 +127,75 @@ export default function UsersList(props) {
     })
       .then((response) => response.json())
       .then((json) => {
-        setAlertMsg("User Updated Successfully");
-        setShowAlert(true);
+        this.setState({ alertMsg: "User Updated Successfully" });
+        this.setState({ showAlert: true });
       });
-  }
+  };
 
-  return (
-    <>
-      <div style={{ height: 420, width: "100%" }}>
-        <DataGrid
-          rows={state.result.data}
-          columns={columns}
-          pageSize={pageSize}
-          paginationMode="server"
-          page={page}
-          onPageChange={(params) => {
-            setPage(params.page);
+  render() {
+    return (
+      <>
+        <div style={{ height: 420, width: "100%" }}>
+          <DataGrid
+            rows={this.state.state.result.data}
+            columns={this.columns}
+            pageSize={this.state.pageSize}
+            paginationMode="server"
+            page={this.state.page}
+            onPageChange={(params) => {
+              this.setState({ page: params.page });
+            }}
+            onPageSizeChange={(params) => {
+              this.setState({ pageSize: params.pageSize });
+              //setPageSize(params.pageSize);
+            }}
+            rowsPerPageOptions={[3, 5]}
+            rowCount={parseInt(this.state.state.result.total)}
+            //to delete the selected row
+            onRowSelected={(e) => (this.userIdSelected = e.data.id)}
+            //editing
+            onEditCellChangeCommitted={(params) => this.handleEditing(params)}
+            disableColumnMenu={true}
+          />
+        </div>
+        <div>
+          <StyledBox component="div">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={this.handleDelete}
+            >
+              {this.state.loading && (
+                <CircularProgress color="inherit" size={24} />
+              )}
+              {!this.state.loading && "Delete Selected User"}
+            </Button>
+          </StyledBox>
+        </div>
+        {/* Con este condicional, hago que UserDetail componentDidMount
+        alcance. Si no pusiera condicional, necesitaria un if en el componentDidMount ya que
+        se llamaria al renderizar el UserList component. Y ademas necesitaria usar el
+        componentDidUpdate en UserDetails*/}
+        {this.state.showDetail && (
+          <UserDetails
+            apiUrl={this.props.apiUrl}
+            userId={this.state.userId}
+            show={this.state.showDetail}
+            handleClose={this.closeDetails}
+          />
+        )}
+        <Snackbar
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "center",
           }}
-          onPageSizeChange={(params) => {
-            setPageSize(params.pageSize);
-          }}
-          rowsPerPageOptions={[3, 5]}
-          rowCount={parseInt(state.result.total)}
-          //to delete the selected row
-          onRowSelected={(e) => (userIdSelected = e.data.id)}
-          //editing
-          onEditCellChangeCommitted={(params) => handleEditing(params)}
-          disableColumnMenu={true}
-        />
-      </div>
-      <div>
-        <Box
-          component="div"
-          className={`${classes.bottomRightBox} ${classes.box}`}
+          open={this.state.showAlert}
+          autoHideDuration={3000}
+          onClose={this.handleCloseAlert}
         >
-          <Button variant="contained" color="primary" onClick={handleDelete}>
-            {loading && <CircularProgress color="inherit" size={24} />}
-            {!loading && "Delete Selected User"}
-          </Button>
-        </Box>
-      </div>
-      {/* Estando asi, el useEffects de UserDetails se ejecuta...
-      por eso tuve que poner un if en el callback. 
-      ahora, si lo hago condicional, el componente no se monta, y entonces
-      siempre al montarse ejecuta el useEffect aunque este abriendo de nuevo el popup
-      para la misma fila*/}
-      {/* {showDetail && ( */}
-      <UserDetails
-        apiUrl={props.apiUrl}
-        userId={userId}
-        show={showDetail}
-        handleClose={closeDetails}
-      />
-      <Snackbar
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "center",
-        }}
-        open={showAlert}
-        autoHideDuration={3000}
-        onClose={handleCloseAlert}
-      >
-        <Alert severity="success">{alertMsg}</Alert>
-      </Snackbar>
-      {/* )} */}
-    </>
-  );
+          <Alert severity="success">{this.state.alertMsg}</Alert>
+        </Snackbar>
+      </>
+    );
+  }
 }

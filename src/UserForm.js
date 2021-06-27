@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Component } from "react";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -6,21 +6,28 @@ import Snackbar from "@material-ui/core/Snackbar";
 import Alert from "@material-ui/lab/Alert";
 import "./form.css";
 
-export default function UsersForm(props) {
-  const [inputsValue, setInputsValue] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [errorInputs, setErrorInputs] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
+export default class UsersForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      inputsValue: { name: "", username: "", email: "" },
+      loading: false,
+      errorInputs: {},
+      showSuccess: false,
+    };
+  }
 
-  function handleSubmit(e) {
+  handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    fetch(props.apiUrl, {
+    this.setState({
+      loading: true,
+    });
+    fetch(this.props.apiUrl, {
       method: "POST",
       body: JSON.stringify({
-        name: inputsValue.name,
-        userName: inputsValue.username,
-        email: inputsValue.email,
+        name: this.state.inputsValue.name,
+        userName: this.state.inputsValue.username,
+        email: this.state.inputsValue.email,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -28,106 +35,138 @@ export default function UsersForm(props) {
     })
       .then((response) => response.json())
       .then((json) => {
-        setLoading(false);
-        setErrorInputs({});
-        checkResponse(json);
+        this.setState({
+          loading: false,
+          errorInputs: {},
+        });
+        this.checkResponse(json);
       });
-  }
+  };
 
-  function handleClose() {
-    setShowSuccess(false);
-  }
+  handleClose = () => {
+    this.setState({
+      showSuccess: false,
+    });
+  };
 
-  function handleChange(e) {
+  handleChange = (e) => {
     const name = e.target.name;
     const value = e.target.value;
-    setInputsValue({ ...inputsValue, [name]: value });
-  }
+    this.setState((state) => ({
+      inputsValue: { ...state.inputsValue, [name]: value },
+    }));
+  };
 
-  function checkResponse(json) {
+  checkResponse = (json) => {
     if (json.name && json.userName && json.email) {
-      setShowSuccess(true);
+      this.setState({
+        showSuccess: true,
+      });
     }
     if (!json.name) {
-      setErrorInputs((errorInputs) => ({
+      this.setState((state) => ({
+        errorInputs: { ...state.errorInputs, name: "This field is required" },
+      }));
+      /*       setErrorInputs((errorInputs) => ({
         ...errorInputs,
         name: "This field is required",
-      }));
+      })); */
     }
     if (!json.userName) {
-      setErrorInputs((errorInputs) => ({
+      this.setState((state) => ({
+        errorInputs: {
+          ...state.errorInputs,
+          username: "This field is required",
+        },
+      }));
+      /*       setErrorInputs((errorInputs) => ({
         ...errorInputs,
         username: "This field is required",
-      }));
+      })); */
     }
     if (!json.email) {
-      setErrorInputs((errorInputs) => ({
+      this.setState((state) => ({
+        errorInputs: { ...state.errorInputs, email: "This field is required" },
+      }));
+      /* setErrorInputs((errorInputs) => ({
         ...errorInputs,
         email: "This field is required",
-      }));
+      })); */
     }
-  }
+  };
 
-  return (
-    <>
-      <form noValidate autoComplete="off" onSubmit={handleSubmit}>
-        <div className="form">
-          <TextField
-            id="name"
-            name="name"
-            label="Name"
-            error={typeof errorInputs.name !== "undefined"}
-            helperText={errorInputs.name ? errorInputs.name : ""}
-            required={true}
-            fullWidth={true}
-            value={inputsValue.value}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="form">
-          <TextField
-            id="username"
-            name="username"
-            label="User Name"
-            error={typeof errorInputs.username !== "undefined"}
-            helperText={errorInputs.username ? errorInputs.username : ""}
-            required={true}
-            fullWidth={true}
-            value={inputsValue.value}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="form">
-          <TextField
-            id="email"
-            name="email"
-            label="EMail"
-            error={typeof errorInputs.email !== "undefined"}
-            helperText={errorInputs.email ? errorInputs.email : ""}
-            required={true}
-            fullWidth={true}
-            value={inputsValue.value}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <Button type="submit" variant="contained" color="primary">
-            {loading && <CircularProgress color="inherit" size={24} />}
-            {!loading && "Save"}
-          </Button>
-        </div>
-      </form>
-      <Snackbar
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "center",
-        }}
-        open={showSuccess}
-        autoHideDuration={3000}
-        onClose={handleClose}
-      >
-        <Alert severity="success">User Created Successfully !</Alert>
-      </Snackbar>
-    </>
-  );
+  render() {
+    return (
+      <>
+        <form noValidate autoComplete="off" onSubmit={this.handleSubmit}>
+          <div className="form">
+            <TextField
+              id="name"
+              name="name"
+              label="Name"
+              error={typeof this.state.errorInputs.name !== "undefined"}
+              helperText={
+                this.state.errorInputs.name ? this.state.errorInputs.name : ""
+              }
+              required={true}
+              fullWidth={true}
+              value={this.state.inputsValue.name}
+              onChange={this.handleChange}
+            />
+          </div>
+          <div className="form">
+            <TextField
+              id="username"
+              name="username"
+              label="User Name"
+              error={typeof this.state.errorInputs.username !== "undefined"}
+              helperText={
+                this.state.errorInputs.username
+                  ? this.state.errorInputs.username
+                  : ""
+              }
+              required={true}
+              fullWidth={true}
+              value={this.state.inputsValue.username}
+              onChange={this.handleChange}
+            />
+          </div>
+          <div className="form">
+            <TextField
+              id="email"
+              name="email"
+              label="EMail"
+              error={typeof this.state.errorInputs.email !== "undefined"}
+              helperText={
+                this.state.errorInputs.email ? this.state.errorInputs.email : ""
+              }
+              required={true}
+              fullWidth={true}
+              value={this.state.inputsValue.email}
+              onChange={this.handleChange}
+            />
+          </div>
+          <div>
+            <Button type="submit" variant="contained" color="primary">
+              {this.state.loading && (
+                <CircularProgress color="inherit" size={24} />
+              )}
+              {!this.state.loading && "Save"}
+            </Button>
+          </div>
+        </form>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "center",
+          }}
+          open={this.state.showSuccess}
+          autoHideDuration={3000}
+          onClose={this.handleClose}
+        >
+          <Alert severity="success">User Created Successfully !</Alert>
+        </Snackbar>
+      </>
+    );
+  }
 }
