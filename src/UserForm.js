@@ -67,10 +67,6 @@ export default class UsersForm extends Component {
       this.setState((state) => ({
         errorInputs: { ...state.errorInputs, name: "This field is required" },
       }));
-      /*       setErrorInputs((errorInputs) => ({
-        ...errorInputs,
-        name: "This field is required",
-      })); */
     }
     if (!json.userName) {
       this.setState((state) => ({
@@ -79,19 +75,11 @@ export default class UsersForm extends Component {
           username: "This field is required",
         },
       }));
-      /*       setErrorInputs((errorInputs) => ({
-        ...errorInputs,
-        username: "This field is required",
-      })); */
     }
     if (!json.email) {
       this.setState((state) => ({
         errorInputs: { ...state.errorInputs, email: "This field is required" },
       }));
-      /* setErrorInputs((errorInputs) => ({
-        ...errorInputs,
-        email: "This field is required",
-      })); */
     }
   };
 
